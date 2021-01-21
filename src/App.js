@@ -6,13 +6,10 @@ import Rank from './components/Rank/Rank';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Particles from 'react-particles-js';
 import React, { Component } from 'react';
-import Clarifai from 'clarifai';
 import Signin from './components/Signin/Signin';
 import Register from './components/Register/Register';
 
-const app = new Clarifai.App({
-  apiKey: '296bb017507e40339d54a3d269231793'
- });
+
 
 const particlesOptions = {
   particles: {
@@ -109,30 +106,33 @@ class App extends Component{
     //     console.log(response)
     //     var concepts = response['outputs'][0]['data']['concepts']
     //   })
-    app.models
-    .predict(
-      {id: "e15d0f873e66047e579f90cf82c9882z",
-        version:'0df9eb6c71674ada9bbec68729aa1c4c'}, 
-        this.state.input)
-        .then(response => {
-          if (response){
-            fetch('http://localhost:3000/image',{
-              method:'put',
-              headers:{'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                id:this.state.user.id
-              })
-            })
-              .then(response => response.json())
-              .then(count => {
-                this.setState(Object.assign(this.state.user,{entries:count}))
-              })
-              .catch(console.log)
-          }
-          this.displayFaceBox(this.calculateFaceLocation(response))
+    fetch('http://localhost:3000/imageurl',{
+      method:'post',
+      headers:{'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        input:this.state.input
+      })
+    })
+    .then(response => response.json())
+    .then(response => {
+      if (response){
+        fetch('http://localhost:3000/image',{
+          method:'put',
+          headers:{'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id:this.state.user.id
+          })
         })
-            //console.log(response.outputs[0].data.regions[0].region_info.bounding_box)
-        .catch(err => console.log(err));
+          .then(response => response.json())
+          .then(count => {
+            this.setState(Object.assign(this.state.user,{entries:count}))
+          })
+          .catch(console.log)
+      }
+      this.displayFaceBox(this.calculateFaceLocation(response))
+    })
+        //console.log(response.outputs[0].data.regions[0].region_info.bounding_box)
+    .catch(err => console.log(err));
   }
 
   onRouteChange = (route) => {
